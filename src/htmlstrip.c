@@ -1,13 +1,4 @@
-/**
- *
- *
- **/
-
-#include <Python.h>
-
-static PyObject * html_strip(PyObject *, PyObject *);
-PyMODINIT_FUNC inithtmlstrip(void);
-
+#include "htmlstrip.h"
 
 static PyObject *
 html_strip(PyObject *self, PyObject *args) {
@@ -17,6 +8,9 @@ html_strip(PyObject *self, PyObject *args) {
   Py_ssize_t html_len;
   Py_UNICODE * html_in;
   Py_UNICODE * buf;
+  Py_UNICODE * html_comment_start;
+  Py_UNICODE * html_comment_end;
+  int html_comment_start_len, html_comment_end_len;
   Py_UNICODE c;
   int i_in, i_buf;
 
@@ -38,6 +32,28 @@ html_strip(PyObject *self, PyObject *args) {
     return PyErr_NoMemory();  
   }
 
+  // html comment strings
+  html_comment_start_len = wcslen(HTML_COMMENT_START);
+  html_comment_start = unicode_from_chars( 
+    HTML_COMMENT_START, 
+    html_comment_start_len
+    );
+  if (html_comment_start == NULL) {
+    free(buf);  
+    return PyErr_NoMemory();  
+  };
+
+  html_comment_end_len = wcslen(HTML_COMMENT_END);
+  html_comment_end = unicode_from_chars( 
+    HTML_COMMENT_END, 
+    html_comment_end_len
+    );
+  if (html_comment_end == NULL) {
+    free(buf);  
+    free(html_comment_start);  
+    return PyErr_NoMemory();  
+  }
+
   // ....
   i_buf = 0;
   for (i_in = 0; i_in < html_len; i_in++) {
@@ -56,6 +72,31 @@ html_strip(PyObject *self, PyObject *args) {
       }
     }
 
+    // cut html comments
+    if ((i_in + html_comment_start_len) < html_len) {
+      if (memcmp( 
+          &html_in[i_in],
+          html_comment_start,
+          sizeof(Py_UNICODE) * html_comment_start_len) == 0) {
+       
+        // delete the char to prevent it form being appended
+        c = NULL;
+
+        i_in += html_comment_start_len;
+
+        while ((i_in + html_comment_end_len) <= html_len) {
+          
+          if (memcmp(&html_in[i_in], html_comment_end,
+                  sizeof(Py_UNICODE)*html_comment_end_len) == 0) {
+            break;
+          }
+          // cut 
+          i_in++; 
+        }
+        i_in += html_comment_end_len;
+      }  
+    }
+
  
     if (c) {
       buf[i_buf++] = c;
@@ -63,9 +104,36 @@ html_strip(PyObject *self, PyObject *args) {
   }
 
   result = PyUnicode_FromUnicode(buf, i_buf);
+
+  free(html_comment_end);
+  free(html_comment_start);
   free(buf);
   return result;
 
+};
+
+
+Py_UNICODE * 
+unicode_from_chars(const wchar_t * str, int len) {
+
+  int i;
+  Py_UNICODE * puni = (Py_UNICODE *)malloc(
+    (len+1)*sizeof(Py_UNICODE)
+    ); 
+
+  if (puni == NULL) {
+    // could not malloc enough memory
+    return NULL; 
+  }
+
+  for (i=0; i<len; i++) {
+    puni[i] = (Py_UNICODE)str[i];  
+  }
+
+  // finalize
+  puni[len] = (Py_UNICODE)(0);
+
+  return puni;
 };
 
 
@@ -76,7 +144,6 @@ static PyMethodDef Methods[] = {
      {NULL, NULL, 0, NULL}        /* Sentinel */
 
 };
-
 
 
 PyMODINIT_FUNC

@@ -1,7 +1,7 @@
 import htmlstrip
 import unittest
 
-TEST_STRING = u"""
+SIMPLEDOC_STRING = u"""
 <html>
     <head>
     </heady>
@@ -26,8 +26,26 @@ TEST_STRING = u"""
 </html>
 """
 
+HTMLCOMMENT_STRING = u"""
+<html>
+<should_be_there/>
+    <!-- should_not_be_there --> 
+    should_be_there_too
+<should_also_be_there/>
+</html>
+
+"""
+
 class TestBasic(unittest.TestCase):
     def test_simpledoc(self):
-        shtml = htmlstrip.strip(TEST_STRING)
+        shtml = htmlstrip.strip(SIMPLEDOC_STRING)
         self.assertTrue(shtml != None, "strip returned None")
-        self.assertTrue(len(shtml) < len(TEST_STRING), "compressed sting is not smaller")
+        self.assertTrue(len(shtml) < len(SIMPLEDOC_STRING), "compressed sting is not smaller")
+
+    def test_htmlcomment(self):
+        shtml = htmlstrip.strip(HTMLCOMMENT_STRING)
+        print shtml
+        self.assertTrue(shtml.find("should_be_there") != -1, "deleted to much")
+        self.assertTrue(shtml.find("should_also_be_there") != -1, "deleted to much")
+        self.assertTrue(shtml.find("should_be_there_too") != -1, "deleted to much")
+        self.assertTrue(shtml.find("should_not_be_there") == -1, "did not delete comment")
