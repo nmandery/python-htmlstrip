@@ -44,7 +44,6 @@ class TestBasic(unittest.TestCase):
 
     def test_htmlcomment(self):
         shtml = htmlstrip.strip(HTMLCOMMENT_STRING)
-        print shtml
         self.assertTrue(shtml.find("should_be_there") != -1, "deleted to much")
         self.assertTrue(shtml.find("should_also_be_there") != -1, "deleted to much")
         self.assertTrue(shtml.find("should_be_there_too") != -1, "deleted to much")
