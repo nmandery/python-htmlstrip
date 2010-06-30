@@ -80,7 +80,7 @@ html_strip(PyObject *self, PyObject *args) {
           sizeof(Py_UNICODE) * html_comment_start_len) == 0) {
        
         // delete the char to prevent it form being appended
-        c = NULL;
+        c = (Py_UNICODE)(NULL);
 
         i_in += html_comment_start_len;
 
