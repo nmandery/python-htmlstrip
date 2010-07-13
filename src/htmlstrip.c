@@ -70,6 +70,13 @@ html_strip(PyObject *self, PyObject *args) {
       if (c != (Py_UNICODE)('<')) {
         buf[i_buf++] = (Py_UNICODE)(' ');
       }
+      else {
+         // also leave one space if the last character in the compressed 
+         // html was no closing tag
+         if ((i_buf>0) && (c == (Py_UNICODE)('<')) && (buf[i_buf-1] != (Py_UNICODE)('>') )) {
+          buf[i_buf++] = (Py_UNICODE)(' ');
+        }         
+      }
     }
 
     // cut html comments
