@@ -80,28 +80,39 @@ html_strip(PyObject *self, PyObject *args) {
     }
 
     // cut html comments
-    if ((i_in + html_comment_start_len) < html_len) {
+    int end_comment = i_in + html_comment_start_len;
+    if (end_comment < html_len) {
       if (memcmp( 
           &html_in[i_in],
           html_comment_start,
           sizeof(Py_UNICODE) * html_comment_start_len) == 0) {
-       
-        // delete the char to prevent it form being appended
-        c = (Py_UNICODE)(NULL);
-
-        i_in += html_comment_start_len;
-
-        while ((i_in + html_comment_end_len) <= html_len) {
-          
-          if (memcmp(&html_in[i_in], html_comment_end,
-                  sizeof(Py_UNICODE)*html_comment_end_len) == 0) {
-            break;
-          }
-          // cut 
-          i_in++; 
+      
+        int cut_comment = 1;
+        // do not cut browser specific comments like <!--[if IE] ...
+        if (end_comment < html_len) {
+            if (html_in[end_comment] == (Py_UNICODE)('[')) {
+              cut_comment = 0;  
+            }
         }
-        i_in += html_comment_end_len;
-      }  
+
+        if (cut_comment == 1) {
+          // delete the char to prevent it from being appended
+          c = (Py_UNICODE)(NULL);
+          i_in += html_comment_start_len;
+
+          while ((i_in + html_comment_end_len) <= html_len) {
+            if (memcmp(&html_in[i_in], html_comment_end,
+                    sizeof(Py_UNICODE)*html_comment_end_len) == 0) {
+              break;
+            }
+            // cut 
+            i_in++; 
+          }
+          i_in += html_comment_end_len;
+        }
+
+
+      }
     }
 
  

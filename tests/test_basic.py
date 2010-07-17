@@ -28,6 +28,7 @@ SIMPLEDOC_STRING = u"""
 
 HTMLCOMMENT_STRING = u"""
 <html>
+<!--[if IE] comment_should_stay []-->
 <should_be_there/>
     <!-- should_not_be_there --> 
     should_be_there_too
@@ -47,4 +48,5 @@ class TestBasic(unittest.TestCase):
         self.assertTrue(shtml.find("should_be_there") != -1, "deleted to much")
         self.assertTrue(shtml.find("should_also_be_there") != -1, "deleted to much")
         self.assertTrue(shtml.find("should_be_there_too") != -1, "deleted to much")
+        self.assertTrue(shtml.find("comment_should_stay") != -1, "deleted browser switch")
         self.assertTrue(shtml.find("should_not_be_there") == -1, "did not delete comment")
